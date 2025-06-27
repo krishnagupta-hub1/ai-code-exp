@@ -2,39 +2,57 @@ import streamlit as st
 import google.generativeai as genai
 import base64
 
-
 genai.configure(api_key="AIzaSyBP3_R5mYhJJyBgSmTKWzmUYwoyV2LLmeI")
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 st.set_page_config(page_title="GenAI Code Assistant", page_icon="💻")
 
+st.markdown("""
+    <style>
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .nav-tabs a {
+            margin: 0 15px;
+            padding: 10px 25px;
+            text-decoration: none;
+            color: white;
+            background-color: #4B8BBE;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .nav-tabs a.selected {
+            background-color: #306998;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 tab = st.radio("Choose Tool:", ["🧠 Code Explainer", "🛠️ Code Debugger"], horizontal=True, label_visibility="collapsed")
 
 st.markdown(f"""
-    <h1 style='text-align: center; color: #4B8BBE;'>
-        {'🧠 GenAI Code Explainer' if tab == '🧠 Code Explainer' else '🛠️ GenAI Code Debugger'}
-    </h1>
+    <h1 style='text-align: center; color: #4B8BBE;'>{"🧠 GenAI Code Explainer" if tab == "🧠 Code Explainer" else "🛠️ GenAI Code Debugger"}</h1>
     <p style='text-align: center;'>Powered by Gemini · Supports Python, JavaScript, C++, and Java</p>
     <hr style="border: 1px solid #ccc;" />
 """, unsafe_allow_html=True)
 
-
 with st.sidebar:
     st.title("📌 About")
     st.markdown("""
-        **Features:**
-        - Explain code in plain English
-        - Debug and Auto-Fix Code
-        - Generate Unit Tests
-        - Show Time/Space Complexity
-        - Ask AI Assistant Coding Doubts
+        **This GenAI App Helps You:**
+        - 🔍 Understand code in plain English
+        - 🛠️ Debug and fix programming errors
 
-        **Languages:** Python, JavaScript, C++, Java
-        **By:** Krishna Gupta  
-        [GitHub](https://github.com/krishnagupta-hub1/ai-code-exp)
+        **Languages Supported:**
+        - Python
+        - JavaScript
+        - C++
+        - Java
+
+        **Made by:** Krishna Gupta  
+        [🌐 GitHub](https://github.com/krishnagupta-hub1/ai-code-exp)
     """)
-
 
 language = st.selectbox("🔤 Select Programming Language:", ["Python", "JavaScript", "C++", "Java"])
 code_input = st.text_area(f"💻 Paste your {language} code here:", height=200)
@@ -62,89 +80,23 @@ if tab == "🧠 Code Explainer":
                 except Exception as e:
                     st.error(f"❌ Error: {e}")
 
-
 elif tab == "🛠️ Code Debugger":
     if st.button("🛠️ Debug Code"):
         if not code_input.strip():
             st.warning("Please paste some code first.")
         else:
             with st.spinner("🕵️‍♂️ Debugging your code..."):
-                debug_prompt = f"Find and explain any possible errors in the following {language} code. Suggest corrections:\n\n{code_input}"
+                prompt = f"Find and explain any possible errors in the following {language} code. Suggest corrections:\n\n{code_input}"
                 try:
-                    response = model.generate_content(debug_prompt)
+                    response = model.generate_content(prompt)
                     debug_output = response.text
                     st.markdown("### 🧪 Debugging Report:")
                     st.error(debug_output)
+                    st.markdown("### 📄 Your Code:")
+                    st.code(code_input, language=language.lower())
+                    st.markdown(get_download_link(debug_output), unsafe_allow_html=True)
+                    st.snow()
                 except Exception as e:
                     st.error(f"❌ Error: {e}")
-
-    if st.button("🟢 Auto-Fix Code"):
-        with st.spinner("🛠️ Fixing your code..."):
-            fix_prompt = f"Fix and return the corrected {language} code. Provide a short explanation of the changes:\n\n{code_input}"
-            try:
-                response = model.generate_content(fix_prompt)
-                fixed_code = response.text
-                st.markdown("### ✅ Fixed Code:")
-                st.code(fixed_code, language=language.lower())
-                st.markdown(get_download_link(fixed_code), unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
-
-    if st.button("🧪 Generate Unit Tests"):
-        with st.spinner("🧪 Generating unit tests..."):
-            test_prompt = f"Write unit test cases for the following {language} code:\n\n{code_input}"
-            try:
-                response = model.generate_content(test_prompt)
-                test_code = response.text
-                st.markdown("### 🧾 Unit Test Cases:")
-                st.code(test_code, language=language.lower())
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
-
-
-st.markdown("""
-    <style>
-        #complexity-bar {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background-color: #f5f5f5;
-            padding: 10px 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            font-size: 14px;
-        }
-    </style>
-    <div id="complexity-bar">
-        <b>Complexity Info</b><br>
-        ⏱ Time: analyzing...<br>
-        💾 Space: analyzing...
-    </div>
-""", unsafe_allow_html=True)
-
-if code_input.strip():
-    complexity_prompt = f"Analyze the time and space complexity of the following {language} code:\n\n{code_input}"
-    try:
-        response = model.generate_content(complexity_prompt)
-        complexity_info = response.text.replace("\n", "<br>")
-        st.markdown(f"""
-            <script>
-                document.getElementById('complexity-bar').innerHTML = `<b>Complexity Info</b><br>{complexity_info}`;
-            </script>
-        """, unsafe_allow_html=True)
-    except:
-        pass
-
-with st.expander("🤖 Ask Personal AI Assistant"):
-    assistant_query = st.text_input("Type your coding doubt or question below:")
-    if st.button("Ask AI"):
-        if assistant_query.strip():
-            try:
-                with st.spinner("🤖 Thinking..."):
-                    answer = model.generate_content(assistant_query)
-                    st.markdown("### 💬 Assistant's Response:")
-                    st.info(answer.text)
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
 
 st.markdown("<hr><center>Made with ❤️ by Krishna Gupta · Powered by Gemini 1.5 · Deployed on Streamlit</center>", unsafe_allow_html=True)
