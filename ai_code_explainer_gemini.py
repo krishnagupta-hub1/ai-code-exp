@@ -2,13 +2,13 @@ import streamlit as st
 import google.generativeai as genai
 import base64
 
-# ===================== CONFIG =====================
+
 genai.configure(api_key="AIzaSyBP3_R5mYhJJyBgSmTKWzmUYwoyV2LLmeI")
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 st.set_page_config(page_title="GenAI Code Assistant", page_icon="💻")
 
-# ===================== NAVIGATION =====================
+
 tab = st.radio("Choose Tool:", ["🧠 Code Explainer", "🛠️ Code Debugger"], horizontal=True, label_visibility="collapsed")
 
 st.markdown(f"""
@@ -19,7 +19,7 @@ st.markdown(f"""
     <hr style="border: 1px solid #ccc;" />
 """, unsafe_allow_html=True)
 
-# ===================== SIDEBAR =====================
+
 with st.sidebar:
     st.title("📌 About")
     st.markdown("""
@@ -35,7 +35,7 @@ with st.sidebar:
         [GitHub](https://github.com/krishnagupta-hub1/ai-code-exp)
     """)
 
-# ===================== INPUTS =====================
+
 language = st.selectbox("🔤 Select Programming Language:", ["Python", "JavaScript", "C++", "Java"])
 code_input = st.text_area(f"💻 Paste your {language} code here:", height=200)
 
@@ -43,7 +43,6 @@ def get_download_link(text):
     b64 = base64.b64encode(text.encode()).decode()
     return f'<a href="data:file/txt;base64,{b64}" download="output.txt">📥 Download Result</a>'
 
-# ===================== CODE EXPLAINER =====================
 if tab == "🧠 Code Explainer":
     if st.button("✨ Explain Code"):
         if not code_input.strip():
@@ -63,7 +62,7 @@ if tab == "🧠 Code Explainer":
                 except Exception as e:
                     st.error(f"❌ Error: {e}")
 
-# ===================== DEBUGGER =====================
+
 elif tab == "🛠️ Code Debugger":
     if st.button("🛠️ Debug Code"):
         if not code_input.strip():
@@ -102,7 +101,7 @@ elif tab == "🛠️ Code Debugger":
             except Exception as e:
                 st.error(f"❌ Error: {e}")
 
-# ===================== FLOATING COMPLEXITY BAR =====================
+
 st.markdown("""
     <style>
         #complexity-bar {
@@ -136,7 +135,6 @@ if code_input.strip():
     except:
         pass
 
-# ===================== PERSONAL AI ASSISTANT =====================
 with st.expander("🤖 Ask Personal AI Assistant"):
     assistant_query = st.text_input("Type your coding doubt or question below:")
     if st.button("Ask AI"):
